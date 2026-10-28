@@ -158,3 +158,6 @@ dmypy.json
 *.code-workspace
 
 # End of https://www.toptal.com/developers/gitignore/api/django
+### Local tooling ###
+# DB Browser for SQLite project files
+*.sqbpro

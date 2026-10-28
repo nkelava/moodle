@@ -6,7 +6,7 @@ The app's UI is branded **SkillUp**. It is a class project rather than a product
 
 ## Features
 
-- **Email-based accounts.** A custom user model (`users.CustomUsers`) logs in with email instead of a username, and email matching is case-insensitive.
+- **Email-based accounts.** A custom user model (`users.User`) logs in with email instead of a username, and email matching is case-insensitive.
 - **Roles and study status.** Each user has a role (`student` or `professor`) and a status (`none`, `full time` or `part time`).
 - **Course catalogue.** Each course has a name, a unique course code, a curriculum, ECTS credits, a semester for full-time and for part-time study, and an optional/mandatory flag.
 - **Enrollments.** Courses can be enrolled, marked as passed or removed for each student. Enrollments are grouped by semester: 6 semesters for full-time students and 8 for part-time.
@@ -24,7 +24,7 @@ The app's UI is branded **SkillUp**. It is a class project rather than a product
 ## Tech stack
 
 - Python 3 and Django 2.2.8
-- SQLite (`src/db.sqlite3`, created on the first migration)
+- SQLite (`db.sqlite3` in the project root, created on the first migration)
 - Django templates styled with Bootstrap 4 and jQuery, both loaded from CDNs
 
 ## Prerequisites
@@ -49,28 +49,12 @@ pip install Django==2.2.8
 Create the database, an admin account, and start the development server:
 
 ```bash
-cd src
 python manage.py migrate
 python manage.py createsuperuser   # prompts for email and password
 python manage.py runserver
 ```
 
 Open http://127.0.0.1:8000/ and sign in with your new account. The Django admin is at http://127.0.0.1:8000/admin/.
-
-### Fix the static files path
-
-`src/moodle/settings.py` points `STATICFILES_DIRS` to an absolute Windows path from the original author's machine:
-
-```python
-STATICFILES_DIRS = [ "D:\ProjDev\Python\Moodle\Moodle\src\static",
-]
-```
-
-The app still runs without changing this, but the CSS and images will not load. Point the setting at the project's own `static` folder:
-
-```python
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-```
 
 ## Usage
 
@@ -82,48 +66,47 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 | Path | Purpose |
 | --- | --- |
-| `/`, `/login/` | Log in |
-| `/register/` | Create an account |
-| `/index/` | Home page after login |
-| `/courses/` | Course list |
-| `/create_course/`, `/edit_course/<id>`, `/delete_course/<id>` | Course management |
+| `/` | Home page (redirects to the login page when signed out) |
+| `/login/`, `/logout/`, `/register/` | Authentication and sign-up |
 | `/users/` | Student and professor list |
-| `/user_profile/` | Current user's profile |
-| `/student_enrollments/<student_id>` | A student's enrollments by semester |
-| `/enroll/…`, `/course_passed/…`, `/remove_enrollment/…` | Enrollment actions (`<course_id>/<student_id>`) |
+| `/users/profile/` | Current user's profile |
+| `/courses/` | Course list |
+| `/courses/create/`, `/courses/<id>/edit/`, `/courses/<id>/delete/` | Course management |
+| `/enrollments/<student_id>/` | A student's enrollments by semester |
+| `/enrollments/<student_id>/<course_id>/enroll/`, `…/pass/`, `…/remove/` | Enrollment actions |
 | `/admin/` | Django admin |
 
 ## Project structure
 
 ```text
 moodle/
+├── manage.py               # Django management entry point
 ├── requirements.txt        # Pinned packages from the original dev environment
-└── src/
-    ├── manage.py           # Django management entry point
-    ├── db.sqbpro           # DB Browser for SQLite project file (optional tooling)
-    ├── moodle/             # Project package: settings, root URLconf, WSGI
-    ├── main/               # Login, logout, registration, home page, base layout and navbar
-    ├── users/              # Custom email-based user model, roles/status enums, auth backend, user pages
-    ├── courses/            # Course model, form and CRUD views
-    ├── enrollments/        # Enrollment model and enroll / pass / remove views
-    └── static/             # CSS and images
+├── moodle/                 # Project package: settings, root URLconf, WSGI
+├── main/                   # Home page
+├── users/                  # Email-based User model, auth backend, login/register, user list and profile
+├── courses/                # Course model, form and CRUD views
+├── enrollments/            # Enrollment model and enroll / pass / remove views
+├── templates/              # Shared templates: base.html layout and navbar.html
+└── static/                 # CSS and images
 ```
 
-Each app follows the standard Django layout: `models.py`, `views.py`, `urls.py`, `forms.py` and `admin.py`, plus a `templates/` and a `migrations/` folder.
+Each app follows the standard Django layout: `models.py`, `views.py`, `urls.py`, `admin.py` and `migrations/`, with templates namespaced under `<app>/templates/<app>/` (for example `courses/templates/courses/course_list.html`). Each app's URLs are mounted under its own prefix (`/courses/`, `/enrollments/`).
 
 ## Configuration
 
-The project does not read any environment variables or `.env` file. All configuration lives in `src/moodle/settings.py`:
+The project does not read any environment variables or `.env` file. All configuration lives in `moodle/settings.py`:
 
 | Setting | Value | Note |
 | --- | --- | --- |
 | `DEBUG` | `True` | Development only |
 | `SECRET_KEY` | Hard-coded | Replace it before deploying anywhere |
 | `ALLOWED_HOSTS` | `[]` | Add your host if you are not running on localhost |
-| `DATABASES` | SQLite at `src/db.sqlite3` | |
-| `AUTH_USER_MODEL` | `users.CustomUsers` | |
+| `DATABASES` | SQLite at `db.sqlite3` | |
+| `AUTH_USER_MODEL` | `users.User` | |
+| `LOGIN_URL` | `login` | Where `@login_required` sends signed-out users |
 | `AUTHENTICATION_BACKENDS` | `AllowAllUsersModelBackend`, `users.backends.CaseInsensitiveModelBackend` | Case-insensitive email login |
-| `STATICFILES_DIRS` | Absolute Windows path | See [Fix the static files path](#fix-the-static-files-path) |
+| `TEMPLATES['DIRS']`, `STATICFILES_DIRS` | `templates/`, `static/` | Project-wide templates and static files |
 
 ## Status
 
