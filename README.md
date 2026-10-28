@@ -41,10 +41,8 @@ cd moodle
 python3 -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 
-pip install Django==2.2.8
+pip install -r requirements.txt
 ```
-
-> `requirements.txt` pins the full environment the project was developed in. That environment includes several MySQL packages (`mysql`, `mysqlclient`, `mysql-connector-python`) and scraping libraries that the app never imports. On a fresh machine, `pip install -r requirements.txt` usually fails while building `mysql`/`mysqlclient`. Django is the only dependency the app needs to run.
 
 Create the database, an admin account, and start the development server:
 
@@ -81,7 +79,7 @@ Open http://127.0.0.1:8000/ and sign in with your new account. The Django admin 
 ```text
 moodle/
 ├── manage.py               # Django management entry point
-├── requirements.txt        # Pinned packages from the original dev environment
+├── requirements.txt        # Pinned dependencies (Django and its requirements)
 ├── moodle/                 # Project package: settings, root URLconf, WSGI
 ├── main/                   # Home page
 ├── users/                  # Email-based User model, auth backend, login/register, user list and profile
