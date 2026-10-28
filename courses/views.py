@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import CourseForm
 from .models import Course
@@ -24,17 +24,16 @@ def create_course(request):
         if (course_form.is_valid()):
             course_form.save()
             return redirect('courses')
-        else:
-            return HttpResponseNotAllowed(request.method)
-            #return redirect('create_course')
+    else:
+        course_form = CourseForm()
     
-    course_form = CourseForm()
+    # On an invalid POST the bound form is rendered again with its errors.
     return render(request, 'courses/course_form.html', {'course_form': course_form, 'form_title': 'Create course'})
 
 
 @login_required
 def edit_course(request, course_id):
-    course = Course.objects.get(id=course_id)
+    course = get_object_or_404(Course, id=course_id)
 
     if (request.method == 'POST'):
         course_data = CourseForm(request.POST, instance=course)
@@ -42,20 +41,17 @@ def edit_course(request, course_id):
         if (course_data.is_valid()):
             course_data.save()
             return redirect('courses')
-        else:
-            return HttpResponseNotAllowed(request.method)
-            # return redirect('edit_course')
+    else:
+        course_data = CourseForm(instance=course)
 
-    course_data = CourseForm(instance=course)
+    # On an invalid POST the bound form is rendered again with its errors.
     return render(request, 'courses/course_form.html', {'course_form':course_data, 'form_title': 'Edit course'})
 
 
 @login_required
 def delete_course(request, course_id):
-    course = Course.objects.get(id=course_id)
-    
-    if(course is not None):
-        course.delete()
+    course = get_object_or_404(Course, id=course_id)
+    course.delete()
         
     return redirect('courses')
 
