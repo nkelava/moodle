@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, get_user, login, logout
 from django.contrib.auth.decorators import login_required
-from .decorators import staff_required
 from users.enums import StatusChoices, RoleChoices
 from enrollments.models import Enrollment
+from .decorators import staff_required
 from .forms import CreateUserForm
 from .models import User
 
