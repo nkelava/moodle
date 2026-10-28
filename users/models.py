@@ -62,10 +62,11 @@ class User(AbstractBaseUser):
     last_login      = models.DateTimeField(verbose_name=_("last login"), auto_now=True)
     role            = models.CharField(max_length=32, 
                                        choices=[ (tag.name, tag.value) for tag in RoleChoices ],
-                                       default=RoleChoices.STUDENT, 
+                                       default=RoleChoices.STUDENT.name,
                                        null=False)
     status          = models.CharField(max_length=16, 
                                        choices=[ (tag.name, tag.value) for tag in StatusChoices ],
+                                       default=StatusChoices.NONE.name,
                                        null=False)
     
     USERNAME_FIELD = 'email'

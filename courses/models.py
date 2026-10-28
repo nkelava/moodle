@@ -13,7 +13,7 @@ class Course(models.Model):
     part_time_semester      = models.PositiveIntegerField(null=False)
     optional                = models.CharField(max_length=8, 
                                                choices=[ (tag.name, tag.value) for tag in OptionalChoices ],
-                                               default=OptionalChoices.NO,
+                                               default=OptionalChoices.NO.name,
                                                null=False)
     
     def __str__(self):

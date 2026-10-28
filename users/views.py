@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, get_user, login, logout
 from django.contrib.auth.decorators import login_required
-from users.enums import StatusChoices, RoleChoices
+from users.enums import RoleChoices
 from enrollments.models import Enrollment
 from .forms import CreateUserForm
 from .models import User
@@ -20,8 +20,6 @@ def view_users(request):
 def user_profile(request):
     user            = get_user(request)
     user_courses    = Enrollment.objects.filter(student_id=user.id)
-    user.status     = StatusChoices[user.status].value
-    user.role       = RoleChoices[user.role].value
     
     return render(request, 'users/user_profile.html', {'user':user, 'user_courses':user_courses})
 
