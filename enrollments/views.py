@@ -1,13 +1,22 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from .models import Enrollment
 from courses.models import Course
 from users.models import User
+from users.decorators import is_staff_or_admin
 
 # Create your views here.
 
+def check_can_manage(user, student_id):
+    # Students may only see and change their own enrollments; staff and admins any student's.
+    if user.id != student_id and not is_staff_or_admin(user):
+        raise PermissionDenied
+
+
 @login_required
 def student_enrollments(request, student_id):
+    check_can_manage(request.user, student_id)
     student_enrollments = Enrollment.objects.filter(student=student_id)
     enrollment_course_id_list = [ enrollment.course.id for enrollment in student_enrollments ]    
     courses = Course.objects.filter().exclude(id__in=enrollment_course_id_list)
@@ -29,6 +38,7 @@ def student_enrollments(request, student_id):
 
 @login_required
 def enroll(request, course_id, student_id):
+    check_can_manage(request.user, student_id)
     student = User.objects.get(id=student_id)
     course = Course.objects.get(id=course_id)
     
@@ -50,7 +60,12 @@ def enroll(request, course_id, student_id):
 
 @login_required
 def remove_enrollment(request, student_id, course_id):
+    check_can_manage(request.user, student_id)
     enrollment = Enrollment.objects.filter(student=student_id, course=course_id)
+    
+    # Passed courses can only be removed by staff, matching what the page offers.
+    if enrollment.filter(status='passed').exists() and not is_staff_or_admin(request.user):
+        raise PermissionDenied
     
     if (enrollment is not None):
         enrollment.delete()
@@ -60,6 +75,7 @@ def remove_enrollment(request, student_id, course_id):
 
 @login_required
 def course_passed(request, student_id, course_id):
+    check_can_manage(request.user, student_id)
     enrollment = Enrollment.objects.get(student=student_id, course=course_id)
     
     if (enrollment is not None):

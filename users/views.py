@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, get_user, login, logout
 from django.contrib.auth.decorators import login_required
+from .decorators import staff_required
 from users.enums import StatusChoices, RoleChoices
 from enrollments.models import Enrollment
 from .forms import CreateUserForm
@@ -9,7 +10,7 @@ from .models import User
 
 # Create your views here.
 
-@login_required
+@staff_required
 def view_users(request):
     students    = User.objects.filter(role="STUDENT")
     professors  = User.objects.filter(role="PROFESSOR")
@@ -59,7 +60,8 @@ def register(request):
         user_form = CreateUserForm(request.POST.copy())
         user_role = user_form['role'].value()
         
-        if not user_role:
+        # Only admins may pick a role; everyone else always registers as a student.
+        if not user_role or not getattr(request.user, 'is_admin', False):
             user_form.data['role'] = RoleChoices.STUDENT.name
 
         if user_form.is_valid():

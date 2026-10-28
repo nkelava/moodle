@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from users.decorators import admin_required, staff_required
 from .forms import CourseForm
 from .models import Course
 from enrollments.models import Enrollment
@@ -16,7 +17,7 @@ def view_courses(request):
     return render(request,'courses/course_list.html', {'courses':all_courses})
 
 
-@login_required
+@admin_required
 def create_course(request):
     if (request.method == 'POST'):
         course_form = CourseForm(request.POST)
@@ -32,7 +33,7 @@ def create_course(request):
     return render(request, 'courses/course_form.html', {'course_form': course_form, 'form_title': 'Create course'})
 
 
-@login_required
+@staff_required
 def edit_course(request, course_id):
     course = Course.objects.get(id=course_id)
 
@@ -50,7 +51,7 @@ def edit_course(request, course_id):
     return render(request, 'courses/course_form.html', {'course_form':course_data, 'form_title': 'Edit course'})
 
 
-@login_required
+@admin_required
 def delete_course(request, course_id):
     course = Course.objects.get(id=course_id)
     
